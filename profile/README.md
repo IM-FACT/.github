@@ -1,4 +1,4 @@
- # 🌍 IM.FACT Organization
+# 🌍 IM.FACT Organization
 
 **신뢰할 수 있는 환경·기후변화 정보를 제공하는 AI 어시스턴트**
 
@@ -39,22 +39,42 @@ IM.FACT는 **환경, 기후변화, 지속가능성**에 관한 신뢰할 수 있
 
 ## 📊 아키텍처
 
-```
-🌐 사용자 → 🎨 Streamlit UI → ⚡ FastAPI → 🔍 Brave/Google Search
-                                    ↓          ↓
-                            🧠 OpenAI GPT ← 📚 Redis Vector DB
-                                    ↓
-                            💾 PostgreSQL (채팅 기록)
+```mermaid
+graph TD
+    A["🌐 User via Streamlit"] -- "Question" --> B["⚡ FastAPI"];
+    
+    subgraph "RAG Core Logic"
+        B --> C{"🔍 Semantic Cache Check (Redis)"};
+        C -- "✅ Cache Hit" --> B;
+        C -- "❌ Cache Miss" --> D["📚 Vector DB Search (Redis)"];
+        D -- "📄 Docs Found" --> F["🤖 Answer Generation (GPT)"];
+        D -- "🤷 No Docs" --> E["🌐 Live Web Search & Scrape"];
+        E -- "Scraped Content" --> F;
+        F -- "Generated Answer" --> G["💾 Store in Cache (Redis)"];
+        G --> B;
+    end
+
+    B -- "Final Answer" --> A;
+    
+    subgraph "External Services"
+        E --> H["🔍 Brave/Google APIs"];
+    end
+
+    subgraph "Other Storage"
+        B -. "Save History" .-> I["💾 PostgreSQL"];
+    end
 ```
 
 ### 🔄 RAG 워크플로우
 
-1. **질문 입력** → 사용자가 환경/기후 관련 질문 입력
-2. **시멘틱 검색** → Redis Vector DB에서 유사한 기존 답변 검색
-3. **실시간 수집** → 캐시 미스 시 Brave Search와 Google API로 신뢰할 수 있는 웹사이트에서 정보 수집
-4. **답변 생성** → OpenAI GPT로 수집된 정보 기반 답변 생성
-5. **출처 제공** → 답변과 함께 신뢰할 수 있는 출처 정보 표시
-6. **캐시 저장** → 향후 유사한 질문을 위한 답변 캐싱
+1. **질문 입력**: 사용자가 환경/기후 관련 질문을 입력합니다.
+2. **시맨틱 캐시 확인**: 먼저 Redis의 시맨틱 캐시에서 유사도가 매우 높은 기존 질문-답변 쌍이 있는지 검색합니다. (Cache-First)
+3. **캐시 히트 (Cache Hit)**: 유사한 질문이 존재하면, 캐시된 답변을 즉시 반환하여 응답 시간을 최소화합니다.
+4. **캐시 미스 (Cache Miss) 및 RAG 파이프라인 가동**:
+    - **Vector DB 검색**: 캐시에 적합한 답변이 없을 경우, Redis Vector DB에서 관련성 높은 문서 조각(사전 스크랩된 정보)을 검색합니다.
+    - **실시간 웹 검색 (Fallback)**: Vector DB에서 유의미한 정보를 찾지 못하면, Brave Search, Google API 등을 통해 실시간으로 웹에서 최신 정보를 검색하고 스크래핑합니다.
+5. **답변 생성**: Vector DB에서 찾은 문서 또는 실시간으로 수집된 최신 정보를 근거 자료로 사용하여, OpenAI GPT가 종합적이고 신뢰성 있는 답변을 생성합니다.
+6. **출처 제공 및 캐시 저장**: 생성된 답변과 함께 신뢰할 수 있는 출처 정보를 사용자에게 제공합니다. 또한, 향후 유사한 질문에 빠르게 응답할 수 있도록 새로운 질문과 답변 쌍을 시맨틱 캐시에 저장합니다.
 
 ---
 
