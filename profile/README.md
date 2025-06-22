@@ -136,15 +136,6 @@ streamlit run app.py
 
 ---
 
-## 📚 문서
-
-- [📖 API 문서](http://localhost:8000/docs) - FastAPI 자동 생성 문서
-- [🏗️ 아키텍처 가이드](./docs/architecture.md) - 시스템 아키텍처 상세 설명
-- [🚀 실행 가이드](./docs/deployment.md) - 실행 방법 및 환경 설정
-- [🔧 개발 가이드](./docs/development.md) - 로컬 개발 환경 설정
-
----
-
 <div align="center">
 
 **🌍 지구를 위한 신뢰할 수 있는 정보, IM.FACT와 함께하세요! 🌍**
