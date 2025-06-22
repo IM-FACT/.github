@@ -145,8 +145,6 @@ streamlit run app.py
 
 ---
 
----
-
 <div align="center">
 
 **🌍 지구를 위한 신뢰할 수 있는 정보, IM.FACT와 함께하세요! 🌍**
